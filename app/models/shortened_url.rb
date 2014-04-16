@@ -10,6 +10,15 @@ class ShortenedUrl < ActiveRecord::Base
     primary_key: :id
   )
 
+  has_many(
+    :visits,
+    class_name: "Visit",
+    foreign_key: :shortened_url_id,
+    primary_key: :id
+  )
+
+  has_many :visitors, -> { distinct }, through: :visits, source: :visitor
+
   validates :short_url, presence: true, uniqueness: true
   validates :long_url, presence: true
   validates :submitter_id, presence: true
@@ -30,5 +39,23 @@ class ShortenedUrl < ActiveRecord::Base
 
     self.create!(attrs)
   end
+
+  def num_clicks
+    Visit.where(shortened_url_id: self.id).count
+  end
+
+  def num_uniques
+    Visit.where(shortened_url_id: self.id).distinct.count(:submitter_id)
+  end
+
+  def num_recent_uniques(time = 10)
+    where_opts = {
+      shortened_url_id: self.id,
+      created_at: (time.minutes.ago..Time.now)
+    }
+
+    Visit.where(where_opts).distinct.count(:submitter_id)
+  end
 end
 
+# has_many :somethings, -> { distict }, :class_name => "Something"
