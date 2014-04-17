@@ -31,7 +31,7 @@ class ShortenedUrl < ActiveRecord::Base
   validates :short_url, presence: true, uniqueness: true
   validates :long_url, presence: true, length: { maximum: 1024 }
   validates :submitter_id, presence: true
-  validates :max_recent_submits_is_five
+  validate :max_recent_submits_is_five
 
   def self.random_code
     loop do
