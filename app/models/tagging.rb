@@ -1,6 +1,6 @@
 class Tagging < ActiveRecord::Base
-  validate :shortened_url_id, presence: true, uniqueness: true
-  validate :tag_id, presence: true, uniqueness: true
+  validates :shortened_url_id, presence: true, uniqueness: true
+  validates :tag_id, presence: true, uniqueness: true
 
   belongs_to(
     :shortened_url,

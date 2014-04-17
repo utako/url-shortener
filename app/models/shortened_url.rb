@@ -1,8 +1,6 @@
 require 'securerandom'
 
 class ShortenedUrl < ActiveRecord::Base
-
-
   belongs_to(
     :submitter,
     class_name: "User",
@@ -26,11 +24,16 @@ class ShortenedUrl < ActiveRecord::Base
 
   has_many :tags, through: :taggings, source: :tag_topic
 
-  has_many :visitors, -> { distinct }, through: :visits, source: :visitor
+  has_many(
+    :visitors,
+    -> { distinct },
+    through: :visits,
+    source: :visitor
+  )
 
   validates :short_url, presence: true, uniqueness: true
   validates :long_url, presence: true, length: { maximum: 1024 }
-  validates :submitter_id, presence: true
+  validates :submitter, presence: true
   validate :max_recent_submits_is_five
 
   def self.random_code
@@ -55,7 +58,8 @@ class ShortenedUrl < ActiveRecord::Base
   end
 
   def num_uniques
-    Visit.where(shortened_url_id: self.id).distinct.count(:submitter_id)
+    Visit.where(shortened_url_id: self.id)
+      .distinct.count(:submitter_id)
   end
 
   def num_recent_uniques(time = 10)
@@ -68,14 +72,15 @@ class ShortenedUrl < ActiveRecord::Base
   end
 
   private
-    def max_recent_submits_is_five
-      where_opts = {
-        submitter_id: submitter_id,
-        created_at: (1.minutes.ago..Time.now)
-      }
 
-      if ShortenedUrl.where(where_opts).count < 5
-        errors[:submitter_id] << "can't submit more than 5 URLs in one minute"
-      end
+  def max_recent_submits_is_five
+    where_opts = {
+      submitter_id: submitter_id,
+      created_at: (1.minutes.ago..Time.now)
+    }
+
+    if ShortenedUrl.where(where_opts).count < 5
+      errors[:submitter_id] << "can't submit more than 5 URLs in one minute"
     end
+  end
 end

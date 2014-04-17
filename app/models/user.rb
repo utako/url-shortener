@@ -1,5 +1,4 @@
 class User < ActiveRecord::Base
-
   has_many(
     :submitted_urls,
     class_name: "ShortenedUrl",
