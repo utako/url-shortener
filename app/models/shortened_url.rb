@@ -17,11 +17,21 @@ class ShortenedUrl < ActiveRecord::Base
     primary_key: :id
   )
 
+  has_many(
+    :taggings,
+    class_name: "Tagging",
+    foreign_key: :shortened_url_id,
+    primary_key: :id
+  )
+
+  has_many :tags, through: :taggings, source: :tag_topic
+
   has_many :visitors, -> { distinct }, through: :visits, source: :visitor
 
   validates :short_url, presence: true, uniqueness: true
-  validates :long_url, presence: true
+  validates :long_url, presence: true, length: { maximum: 1024 }
   validates :submitter_id, presence: true
+  validates :max_recent_submits_is_five
 
   def self.random_code
     loop do
@@ -56,6 +66,16 @@ class ShortenedUrl < ActiveRecord::Base
 
     Visit.where(where_opts).distinct.count(:submitter_id)
   end
-end
 
-# has_many :somethings, -> { distict }, :class_name => "Something"
+  private
+    def max_recent_submits_is_five
+      where_opts = {
+        submitter_id: submitter_id,
+        created_at: (1.minutes.ago..Time.now)
+      }
+
+      if ShortenedUrl.where(where_opts).count < 5
+        errors[:submitter_id] << "can't submit more than 5 URLs in one minute"
+      end
+    end
+end

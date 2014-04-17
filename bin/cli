@@ -1,5 +1,10 @@
 puts "Input your email:"
 email = gets.chomp
+
+if email == 'apollo@galactica.gov'
+  raise "Get back to flight school, asshole."
+end
+
 user = User.find_by_email(email)
 puts "What do you want to do?"
 puts "0. Create shortened URL"
@@ -15,17 +20,6 @@ when 1
   puts "Type in your shortened url"
   short = gets.chomp
   long = ShortenedUrl.find_by_short_url(short)
+  Visit.record_visit!(user, long)
   Launchy.open(long.long_url)
-end
-
-def #finduserbyemail
-
-end
-
-def visit
-
-end
-
-def create
-
 end
